@@ -1,9 +1,5 @@
-import os
 from config import MAX_CHARS
 from functions.get_files_content import get_file_content
-
-# Note: Adjust the import statement above if your functions directory
-# uses a different folder name (e.g., solutions).
 
 
 def run_tests():
