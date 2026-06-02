@@ -4,7 +4,7 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from functions.call_functions import available_functions
+from functions.call_functions import available_functions, call_function
 
 
 def generate_content(client: genai.Client, messages: list[types.Content]):
@@ -47,9 +47,30 @@ def main():
         print(f"User prompt: {args.user_prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
     if response.function_calls is not None:
+        function_call_parts = []
         for funcs in response.function_calls:
-            print(f"Calling function: {funcs.name}({funcs.args})")
+            function_call_result = call_function(funcs, verbose=args.verbose)
+
+            if not function_call_result.parts:
+                raise ValueError("Function call returned an empty parts list.")
+
+            if function_call_result.parts[0].function_response is None:
+                raise ValueError(
+                    "The first part mssing a valid function_response object mapping."
+                )
+
+            if function_call_result.parts[0].function_response.response is None:
+                raise ValueError(
+                    "The function response field property container evaluates to None."
+                )
+
+            function_call_parts.append(function_call_result.parts[0])
+
+            if args.verbose:
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+
     else:
         print(response.text)
 
