@@ -1,3 +1,4 @@
+from prompt import system_prompt
 import os
 import argparse
 from dotenv import load_dotenv
@@ -9,6 +10,7 @@ def generate_content(client: genai.Client, messages: list[types.Content]):
     return client.models.generate_content(
         model="gemini-2.5-flash",
         contents=messages,
+        config=types.GenerateContentConfig(system_instruction=system_prompt),
     )
 
 
