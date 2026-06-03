@@ -38,41 +38,57 @@ def main():
         )
     ]
 
-    response = generate_content(client, messages)
+    for _ in range(20):
+        response = generate_content(client, messages)
+        if response.candidates:
+            for candidate in response.candidates:
+                messages.append(candidate.content)
 
-    if response.usage_metadata is None:
-        raise RuntimeError("Failed requesting API")
+        if response.usage_metadata is None:
+            raise RuntimeError("Failed requesting API")
 
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+            print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
-    if response.function_calls is not None:
-        function_call_parts = []
-        for funcs in response.function_calls:
-            function_call_result = call_function(funcs, verbose=args.verbose)
+        if response.function_calls:
+            function_call_parts = []
+            for funcs in response.function_calls:
+                function_call_result = call_function(funcs, verbose=args.verbose)
 
-            if not function_call_result.parts:
-                raise ValueError("Function call returned an empty parts list.")
+                if not function_call_result.parts:
+                    raise ValueError("Function call returned an empty parts list.")
 
-            if function_call_result.parts[0].function_response is None:
-                raise ValueError(
-                    "The first part mssing a valid function_response object mapping."
+                if function_call_result.parts[0].function_response is None:
+                    raise ValueError(
+                        "The first part mssing a valid function_response object mapping."
+                    )
+
+                if function_call_result.parts[0].function_response.response is None:
+                    raise ValueError(
+                        "The function response field property container evaluates to None."
+                    )
+
+                function_call_parts.append(function_call_result.parts[0])
+
+                if args.verbose:
+                    print(
+                        f"-> {function_call_result.parts[0].function_response.response}"
+                    )
+            messages.append(
+                types.Content(
+                    role="user",
+                    parts=function_call_parts,
                 )
-
-            if function_call_result.parts[0].function_response.response is None:
-                raise ValueError(
-                    "The function response field property container evaluates to None."
-                )
-
-            function_call_parts.append(function_call_result.parts[0])
-
-            if args.verbose:
-                print(f"-> {function_call_result.parts[0].function_response.response}")
-
+            )
+        else:
+            print("\nAlright! Final response:\n")
+            print(response.text)
+            break
     else:
-        print(response.text)
+        print("Agent reached the maximum iteration without a final response.")
+        exit(1)
 
 
 if __name__ == "__main__":
