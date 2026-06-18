@@ -2,8 +2,8 @@
 
 An AI coding agent built in Python that can read, write, and execute files to autonomously fix bugs in a codebase.
 
-[!WARNING]
-This project is just for my study, so it may not be suitable for production use!
+> [!WARNING]
+> This project is just for my study, so it may not be suitable for production use!
 
 ## Requirements
 
