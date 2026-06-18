@@ -1,10 +1,12 @@
-from prompt import system_prompt
-import os
 import argparse
+import os
+
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+
 from functions.call_functions import available_functions, call_function
+from prompt import system_prompt
 
 
 def generate_content(client: genai.Client, messages: list[types.Content]):
